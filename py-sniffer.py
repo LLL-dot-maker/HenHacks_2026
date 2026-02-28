@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-# Make the script executable
+# pcap_writer.py
 
 import argparse
 from scapy.all import *
 
-def process_packet(packet):
+PCAP_FILE = "live_capture.pcap"
+
+def process_packet_and_save(packet):
     """
     This function will be called for each packet sniffed.
     """
@@ -39,6 +41,7 @@ def process_packet(packet):
         # ----- ICMP -----
         elif ICMP in packet:
             print(f"[ICMP] {src_ip} -> {dst_ip}")
+    wrpcap(PCAP_FILE,packet,append = True)
 
 def main():
     # 1. Create the argument parser
@@ -83,12 +86,12 @@ def main():
     if count > 0:
         print(f"[*] Capturing {count} packets...")
     else:
-        print("[*] Capturing packets... (Press Ctrl+C to stop)")
+        print("[*] Capturing packets... Press Ctrl+C to stop and save)")
     
     # 5. Build the sniff() call
     sniff_args = {
         'store': 0,
-        'prn': process_packet,
+        'prn': process_packet_and_save,
         'count': count
     }
     
