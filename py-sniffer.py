@@ -73,7 +73,7 @@ def main():
     parser.add_argument(
         "-s", "--save",
         type=str,
-        help="Save packets to .pcap file"
+        help="Save packets to .pcap file, takes single parameter file"
     )
     # 3. Parse the arguments
     args = parser.parse_args()
