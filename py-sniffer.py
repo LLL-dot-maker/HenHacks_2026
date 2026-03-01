@@ -4,12 +4,15 @@
 import argparse
 from scapy.all import *
 
-PCAP_FILE = "live_capture.pcap"
+PCAP_FILE = None
 
 def process_packet_and_save(packet):
     """
     This function will be called for each packet sniffed.
     """
+    if PCAP_FILE:
+        wrpcap(PCAP_FILE,packet,append = True)
+
     # ARP-based traffic
     if ARP in packet:
         print(f"[ARP] {packet[ARP].psrc} is at {packet[ARP].hwsrc}")
@@ -41,9 +44,9 @@ def process_packet_and_save(packet):
         # ----- ICMP -----
         elif ICMP in packet:
             print(f"[ICMP] {src_ip} -> {dst_ip}")
-    wrpcap(PCAP_FILE,packet,append = True)
 
 def main():
+    global PCAP_FILE
     # 1. Create the argument parser
     parser = argparse.ArgumentParser(
         description="A simple Python network sniffer using Scapy.",
@@ -67,13 +70,19 @@ def main():
         default=0,
         help="Number of packets to capture (0 for unlimited)."
     )
+    parser.add_argument(
+        "-s", "--save",
+        type=str,
+        help="Save packets to .pcap file"
+    )
     # 3. Parse the arguments
     args = parser.parse_args()
-    
+
     # 4. Validate and use arguments
     iface = args.interface
     bpf_filter = args.filter
     count = args.count
+    save = args.save
 
     if iface:
         print(f"[*] Sniffing on interface: {iface}")
@@ -86,7 +95,11 @@ def main():
     if count > 0:
         print(f"[*] Capturing {count} packets...")
     else:
-        print("[*] Capturing packets... Press Ctrl+C to stop and save)")
+        print("[*] Capturing packets... Press Ctrl+C to stop")
+
+    if save:
+        PCAP_FILE = args.save
+        print(f"[*] Writing packets to file {PCAP_FILE}")
     
     # 5. Build the sniff() call
     sniff_args = {
